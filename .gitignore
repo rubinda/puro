@@ -1,0 +1,18 @@
+
+# Ignore the Vagrant folder
+cluster/.vagrant
+.vagrant
+
+# Ignore everything connected to latex compiling
+*.aux
+*.dvi
+*.log
+*.out
+*.gz
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# IDE - VSCode
+.vscode/*

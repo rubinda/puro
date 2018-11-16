@@ -1,0 +1,71 @@
+% To je predloga za poročila o domačih nalogah pri predmetih, katerih
+% nosilec je Blaž Zupan. Seveda lahko tudi dodaš kakšen nov, zanimiv
+% in uporaben element, ki ga v tej predlogi (še) ni. Več o LaTeX-u izveš na
+% spletu, na primer na http://tobi.oetiker.ch/lshort/lshort.pdf.
+%
+% To predlogo lahko spremeniš v PDF dokument s pomočjo programa
+% pdflatex, ki je del standardne instalacije LaTeX programov.
+
+\documentclass[a4paper,11pt]{article}
+\usepackage{a4wide}
+\usepackage{fullpage}
+\usepackage[utf8x]{inputenc}
+\usepackage[slovene]{babel}
+\selectlanguage{slovene}
+\usepackage[toc,page]{appendix}
+\usepackage[pdftex]{graphicx} % za slike
+\usepackage{setspace}
+\usepackage{color}
+\definecolor{light-gray}{gray}{0.95}
+\usepackage{listings} % za vključevanje kode
+\usepackage{hyperref}
+\renewcommand{\baselinestretch}{1.2} % za boljšo berljivost večji razmak
+\renewcommand{\appendixpagename}{Priloge}
+
+\lstset{
+  basicstyle=\ttfamily,
+  breaklines=true,
+  postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+}
+
+\lstset{ % nastavitve za izpis kode, sem lahko tudi kaj dodaš/spremeniš
+language=Python,
+basicstyle=\footnotesize,
+basicstyle=\ttfamily\footnotesize\setstretch{1},
+backgroundcolor=\color{light-gray},
+}
+
+\title{%
+  Vaja 2\\
+  \large Postavitev in upravljanje računalniških oblakov}
+\author{David Rubin \\ (david.rubin@student.um.si)}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Opis naloge}
+
+CIlj naloge je bila mreža virtualnih računalnikov, ki imajo med sabo omogočeno SSH povezavo. Torej s pomočjo VirtualBox smo ustvarili gručo 10 računalnikov, na katere se lahko povežemo s protokolom SSH. Za demonstracijo delovanja smo uporabili še program \textit{parallel-ssh}, ki omogoča pošiljanje ukaza na več gostiteljev.
+
+\section{Opis rešitve}
+
+Rešitev te naloge sem implementiral kot 2 skripti. Prva skripta, vidna v bloku~\ref{clonevm}, prikazuje del, kjer iz osnovne instance (\textit{base box}) kreiramo 9 kloniranih. V tej osnovni instanci imamo nastavljena 2 omrežna vmesnika. Eden je NAT in omogoča dostop do svetovnega spleta, drugi pa je Host Only in omogoča povezavo med virtualkami. Skripta nato s pomočjo \textit{vboxmanage} instance klonira, jih zažene, počaka, da se jim dodelijo IP naslovi (da je zagon popolen), in s temi ip naslovi zgradi veljaven SSH config datoteko, s pomočjo katere se kasneje povezujemo na računalnike.
+
+V drugi skripti, prikazani v bloku~\ref{connect}, pa je implementirana logika za povezovanje na računalnike. Na vsako instanco se najprej kopira ssh konfiguracijska datoteka (primer je prikazan v bloku~\ref{config}), nato pa se na instanco povežemo in iz nje zaženemo ukaz \textit{parallel-ssh}. Izhod tega ukaza je prikazan v bloku~\ref{output}.
+
+\lstinputlisting[language=bash,label=clonevm,caption=Koda programa za generiranje klonov instance]{cluster.sh}
+
+\lstinputlisting[language=bash,label=connect,caption=Koda programa za povezovanje med instancami]{connect.sh}
+
+\lstinputlisting[language=bash,label=config, caption=Primer konfiguracijske datoteke]{config}
+
+
+\lstinputlisting[language=bash,label=output,caption=Prikaz delovanja programa za povezovanje]{machines-output.txt}
+
+
+\section{Izjava o izdelavi domače naloge}
+Domačo nalogo in pripadajoče programe sem izdelal sam.
+
+\end{document}

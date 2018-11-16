@@ -1,0 +1,5 @@
+Paketi, ki jih ubuntu rabi:
+	openmpi-bin				... bin
+	libopenmpi-dev			... library
+
+Nakljucno stevilo posles vsem ostalim masinam (e.g. 3.14 posles vsem, vsi ti vrnejo in sestevas).

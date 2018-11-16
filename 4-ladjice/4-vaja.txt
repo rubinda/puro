@@ -1,0 +1,11 @@
+Vecigralsko potapljanje ladjic na MPI
+
+trusty0:
+	spletni streznik za zunanje gledalce (streze HTML o trenutnem stanju igre)
+	master igre (hrani stanje polja, inicializira igro)
+
+	Kako strecti HTML?
+		generiras staticno HTML datoteko po vsaki potezi in jo skopiras v /var/www/ (nginx)
+
+trusty1..9:
+	igralci igre -> prejmejo trenutno stanje od trusty0 in mu sporocijo svojo potezo

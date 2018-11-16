@@ -1,0 +1,38 @@
+Machine has been successfully cloned as "ubuntu1"
+Waiting for VM "ubuntu1" to power on...
+VM "ubuntu1" has been successfully started.
+Waiting for a new IP
+Machine has been successfully cloned as "ubuntu2"
+Waiting for VM "ubuntu2" to power on...
+VM "ubuntu2" has been successfully started.
+Waiting for a new IP
+Machine has been successfully cloned as "ubuntu3"
+Waiting for VM "ubuntu3" to power on...
+VM "ubuntu3" has been successfully started.
+Waiting for a new IP
+Machine has been successfully cloned as "ubuntu4"
+Waiting for VM "ubuntu4" to power on...
+VM "ubuntu4" has been successfully started.
+Waiting for a new IP
+Machine has been successfully cloned as "ubuntu5"
+Waiting for VM "ubuntu5" to power on...
+VM "ubuntu5" has been successfully started.
+Waiting for a new IP
+Machine has been successfully cloned as "ubuntu6"
+Waiting for VM "ubuntu6" to power on...
+VM "ubuntu6" has been successfully started.
+Waiting for a new IP
+Machine has been successfully cloned as "ubuntu7"
+Waiting for VM "ubuntu7" to power on...
+VM "ubuntu7" has been successfully started.
+Waiting for a new IP
+Machine has been successfully cloned as "ubuntu8"
+Waiting for VM "ubuntu8" to power on...
+VM "ubuntu8" has been successfully started.
+Waiting for a new IP
+Machine has been successfully cloned as "ubuntu9"
+Waiting for VM "ubuntu9" to power on...
+VM "ubuntu9" has been successfully started.
+Waiting for a new IP
+Waiting for VM "ubuntu0" to power on...
+VM "ubuntu0" has been successfully started.

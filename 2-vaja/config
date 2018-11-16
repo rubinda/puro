@@ -1,0 +1,35 @@
+Host ubuntu1
+	HostName 172.28.128.30
+
+Host ubuntu2
+	HostName 172.28.128.31
+
+Host ubuntu3
+	HostName 172.28.128.32
+
+Host ubuntu4
+	HostName 172.28.128.33
+
+Host ubuntu5
+	HostName 172.28.128.34
+
+Host ubuntu6
+	HostName 172.28.128.35
+
+Host ubuntu7
+	HostName 172.28.128.36
+
+Host ubuntu8
+	HostName 172.28.128.37
+
+Host ubuntu9
+	HostName 172.28.128.38
+
+Host *
+	User vagrant
+	StrictHostKeyChecking no
+	IdentityFile ~/.ssh/ubuntu_id
+
+Host ubuntu0
+	HostName 172.28.128.5
+
