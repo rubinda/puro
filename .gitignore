@@ -16,3 +16,6 @@ Thumbs.db
 
 # IDE - VSCode
 .vscode/*
+
+# Hadoop slika (zipan .tar.gz)
+*.tar.gz

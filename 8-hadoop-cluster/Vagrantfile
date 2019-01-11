@@ -15,17 +15,27 @@ Vagrant.configure("2") do |config|
     namenode.vm.hostname = "NameNode"
 
     # Uporabi po meri narejen private key za SSH
-    node_config.ssh.insert_key = false
-    node_config.ssh.private_key_path = ["./keys/id_rsa", "~/.vagrant.d/insecure_private_key"]
-    node_config.vm.provision "file", source: "./id_rsa.pub", destination: "~/.ssh/authorized_keys"
+    namenode.ssh.insert_key = false
+    namenode.ssh.private_key_path = ["./keys/id_rsa", "~/.vagrant.d/insecure_private_key"]
+    namenode.vm.provision "file", source: "./keys/id_rsa.pub", destination: "~/.ssh/authorized_keys"
+    namenode.vm.provision "file", source: "./keys/id_rsa", destination: "~/.ssh/id_datanode"
 
     # Namesti Java 8 kot privilegiran uporabnik in posodobi /etc/hosts
     # za namenode in 2 datanodes (glej drugi dve instanci ki se 
     # tukaj kreirata)
     namenode.vm.provision "shell", inline: <<-SHELL
-      apt update && apt install -y openjdk-8-jre-headless
+      mkdir -p /usr/local/hadoop_work/hdfs/namenode
+      mkdir -p /usr/local/hadoop_work/hdfs/namesecondary
+      mkdir /usr/local/hadoop
+      chown -R vagrant /usr/local/hadoop_work
+      chown -R vagrant /usr/local/hadoop
+      apt update && apt install -y openjdk-8-jdk-headless
       echo '192.168.33.10  NameNode\n192.168.33.11  DataNode1\n192.168.33.12  DataNode2' >> /etc/hosts
     SHELL
+
+    # Prenesi lokalno shranjeno sliko hadoopa, v kolikor zelis iz interneta,
+    # zakomentiraj to vrstico in odkomentiraj spodnji wget
+    namenode.vm.provision "file", source: "hadoop-2.9.2.tar.gz", destination: "/home/vagrant/hadoop-2.9.2.tar.gz"
   
     # Ostale ukaze izvedi kot neprivilegiran
     namenode.vm.provision "shell", privileged: false, inline: <<-SHELL
@@ -34,17 +44,16 @@ Vagrant.configure("2") do |config|
 
       # Prenesi Hadoop (stable v casu izdelave je 2.9.2) in ga namesti 
       # v /usr/local/hadoop. Povej mu se za Javo
-      wget https://www-us.apache.org/dist/hadoop/common/hadoop-2.9.2/hadoop-2.9.2.tar.gz
+      #wget https://www-us.apache.org/dist/hadoop/common/hadoop-2.9.2/hadoop-2.9.2.tar.gz
+      
       tar -xvf hadoop-2.9.2.tar.gz >> /dev/null
       rm hadoop-2.9.2.tar.gz
-      mv hadoop-2.9.2 /usr/local/hadoop
-      mkdir -p /usr/local/hadoop_work/hdfs/namenode
-      mkdir -p /usr/local/hadoop_work/hdfs/namesecondary
+      mv hadoop-2.9.2/* /usr/local/hadoop
       echo 'export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64' >> /usr/local/hadoop/etc/hadoop/hadoop-env.sh
 
       # Ugasni preverjanje kljucev in zgeneriraj nov kljuc za dostop
       # brez gesla do localhost
-      echo -e 'Host *\n\tStrictHostKeyChecking no\n' >> /home/vagrant/.ssh/config
+      echo -e 'Host *\n\tStrictHostKeyChecking no\nHost DataNode*\n\tIdentityFile ~/.ssh/id_datanode' >> /home/vagrant/.ssh/config
       ssh-keygen -t rsa -P '' -f ~/.ssh/id_rsa
       cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
       chmod 0600 ~/.ssh/authorized_keys
@@ -66,9 +75,8 @@ Vagrant.configure("2") do |config|
 
       # V masters datoteko podaj zapis za Hostname od namenode
       echo 'NameNode' >> /usr/local/hadoop/etc/hadoop/masters
-      echo -e 'DataNode1\nDataNode2' >> /usr/local/hadoop/etc/hadoop/slaves
-      # Formatiraj namenode
-      hadoop namenode -format 
+      echo -e 'DataNode1\nDataNode2' > /usr/local/hadoop/etc/hadoop/slaves
+      
     SHELL
     
     # Skopiraj konfiguracijske datoteke na streznik
@@ -76,6 +84,11 @@ Vagrant.configure("2") do |config|
     namenode.vm.provision "file", source: "./config/hdfs-site.xml", destination: "/usr/local/hadoop/etc/hadoop/hdfs-site.xml"
     namenode.vm.provision "file", source: "./config/mapred-site.xml", destination: "/usr/local/hadoop/etc/hadoop/mapred-site.xml"
     namenode.vm.provision "file", source: "./config/yarn-site.xml", destination: "/usr/local/hadoop/etc/hadoop/yarn-site.xml"
+  
+    namenode.vm.provision "shell", inline: <<-SHELL
+      # Formatiraj namenode
+      /usr/local/hadoop/bin/hadoop namenode -format
+    SHELL
   end
 
 
@@ -84,19 +97,22 @@ Vagrant.configure("2") do |config|
     data1.vm.box = "ubuntu/xenial64"
 
     # Privatni IP nasega datanode in njegov hostname
-    namenode.vm.network "private_network", ip: "192.168.33.11"
-    namenode.vm.hostname = "DameNode1"
+    data1.vm.network "private_network", ip: "192.168.33.11"
+    data1.vm.hostname = "DataNode1"
 
     # Uporabi po meri narejen private key za SSH
-    node_config.ssh.insert_key = false
-    node_config.ssh.private_key_path = ["./keys/id_rsa", "~/.vagrant.d/insecure_private_key"]
-    node_config.vm.provision "file", source: "./id_rsa.pub", destination: "~/.ssh/authorized_keys"
+    data1.ssh.insert_key = false
+    data1.ssh.private_key_path = ["./keys/id_rsa", "~/.vagrant.d/insecure_private_key"]
+    data1.vm.provision "file", source: "./keys/id_rsa.pub", destination: "~/.ssh/authorized_keys"
+    data1.vm.provision "file", source: "./keys/id_rsa", destination: "/home/vagrant/.ssh/id_rsa"
 
+    
     # Namesti Java 8 kot privilegiran uporabnik in posodobi /etc/hosts
     # za namenode in 2 datanodes (glej drugi dve instanci ki se 
     # tukaj kreirata)
-    namenode.vm.provision "shell", inline: <<-SHELL
-      apt update && apt install -y openjdk-8-jre-headless
+    data1.vm.provision "shell", inline: <<-SHELL
+      echo -e 'Host *\n\tStrictHostKeyChecking no\n' >> /home/vagrant/.ssh/config
+      apt update && apt install -y openjdk-8-jdk-headless
       echo '192.168.33.10  NameNode\n192.168.33.11  DataNode1\n192.168.33.12  DataNode2' >> /etc/hosts
       
       # Nastavi system variables znotraj .bashrc
@@ -119,7 +135,13 @@ Vagrant.configure("2") do |config|
       mkdir -p /usr/local/hadoop_work/hdfs/datanode
       mkdir -p /usr/local/hadoop_work/yarn/local
       mkdir -p /usr/local/hadoop_work/yarn/log
-      scp -r NameNode:/usr/local/hadoop /usr/local
+      mkdir -p /usr/local/hadoop
+      chown -R vagrant /usr/local/hadoop_work
+      chown -R vagrant /usr/local/hadoop
+    SHELL
+
+    data1.vm.provision "shell", "privileged": false, inline: <<-SHELL
+      scp -i /home/vagrant/.ssh/id_rsa -r vagrant@NameNode:/usr/local/hadoop /usr/local
     SHELL
   end
 
@@ -129,19 +151,21 @@ Vagrant.configure("2") do |config|
     data2.vm.box = "ubuntu/xenial64"
 
     # Privatni IP nasega datanode in njegov hostname
-    namenode.vm.network "private_network", ip: "192.168.33.12"
-    namenode.vm.hostname = "DameNode2"
+    data2.vm.network "private_network", ip: "192.168.33.12"
+    data2.vm.hostname = "DataNode2"
 
     # Uporabi po meri narejen private key za SSH
-    node_config.ssh.insert_key = false
-    node_config.ssh.private_key_path = ["./keys/id_rsa", "~/.vagrant.d/insecure_private_key"]
-    node_config.vm.provision "file", source: "./id_rsa.pub", destination: "~/.ssh/authorized_keys"
+    data2.ssh.insert_key = false
+    data2.ssh.private_key_path = ["./keys/id_rsa", "~/.vagrant.d/insecure_private_key"]
+    data2.vm.provision "file", source: "./keys/id_rsa.pub", destination: "~/.ssh/authorized_keys"
+    data2.vm.provision "file", source: "./keys/id_rsa", destination: "/home/vagrant/.ssh/id_rsa"
 
     # Namesti Java 8 kot privilegiran uporabnik in posodobi /etc/hosts
     # za namenode in 2 datanodes (glej drugi dve instanci ki se 
     # tukaj kreirata)
-    namenode.vm.provision "shell", inline: <<-SHELL
-      apt update && apt install -y openjdk-8-jre-headless
+    data2.vm.provision "shell", inline: <<-SHELL
+      echo -e 'Host *\n\tStrictHostKeyChecking no\n' >> /home/vagrant/.ssh/config
+      apt update && apt install -y openjdk-8-jdk-headless
       echo '192.168.33.10  NameNode\n192.168.33.11  DataNode1\n192.168.33.12  DataNode2' >> /etc/hosts
 
       # Nastavi system variables znotraj .bashrc
@@ -163,9 +187,18 @@ Vagrant.configure("2") do |config|
       mkdir -p /usr/local/hadoop_work/hdfs/datanode
       mkdir -p /usr/local/hadoop_work/yarn/local
       mkdir -p /usr/local/hadoop_work/yarn/log
-      scp -r NameNode:/usr/local/hadoop /usr/local
+      mkdir -p /usr/local/hadoop
+      chown -R vagrant /usr/local/hadoop_work
+      chown -R vagrant /usr/local/hadoop
+      
+    SHELL
+    
+    data2.vm.provision "shell", "privileged": false, inline: <<-SHELL
+      scp -i /home/vagrant/.ssh/id_rsa -r vagrant@NameNode:/usr/local/hadoop /usr/local
     SHELL
   end
+
+ 
   # The most common configuration options are documented and commented below.
   # For a complete reference, please see the online documentation at
   # https://docs.vagrantup.com.
